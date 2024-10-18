@@ -409,7 +409,7 @@ def assess_descent():
         return False
 
 
-async def assess_flight():
+"""async def assess_flight():  # This is still in development to replace task 4 below
     global airborne, contained, status_led, strobe_led
     
     while True:
@@ -426,7 +426,7 @@ async def assess_flight():
                 strobe_led.value = relay_on
                 good_gps = True
         except Exception as e:
-            print(f"\n{RED}{'Flight assessment error:':<25}{RESET}{e}\n")  
+            print(f"\n{RED}{'Flight assessment error:':<25}{RESET}{e}\n")  """
                  
 
 async def assess_airborne():  #~~~~~ TASK 4 ~~~~~
