@@ -31,15 +31,16 @@ testing_mode = True
 
 
 #-------------------- SX1278 Initialization --------------------
-"""
-- The SX1278 LoRa transceiver is how we broadcast messages over 433 MHz to the ground station(s). 
-- This code will setup the transceiver for operation with the designated parameters. 
-- LoRa APRS operates at 433.775 MHz with 125 MHz bandwidth, 12 spreading factor, and 5 code rate
-- Ensure the base station is operating with the same settings
-- The B computers are not equipped with transmitters
-"""
+
 LoRa = SX127x()
 if computer_type in ["A", "C"]:
+    """
+    - The SX1278 LoRa transceiver is how we broadcast messages over 433 MHz to the ground station(s). 
+    - This code will setup the transceiver for operation with the designated parameters. 
+    - LoRa APRS operates at 433.775 MHz with 125 MHz bandwidth, 12 spreading factor, and 5 code rate
+    - Ensure the base station is operating with the same settings
+    - The B computers are not equipped with transmitters
+    """
     # SPI Port Configuration: bus id 0 and cs id 1 and speed 7.8 Mhz
     LoRa.setSpi(0, 0, 7800000)  
     # I/O Pins Configuration: set RESET->22, BUSY->23, DIO1->26, TXEN->5, RXEN->25
@@ -63,8 +64,8 @@ if computer_type in ["A", "C"]:
 # ---------- COMMUNICATIONS ---------- 
 SOURCE_ADDRESS = 'KW5AUS'
 SOURCE_SSID = '11'
-DEST_ADDRESS = 'APRS'
-DEST_SSID = '1'
+DEST_ADDRESS = 'APRS  '
+DEST_SSID = '0'
 PATH_ADDRESS = 'WIDE2'
 PATH_SSID = '2' 
 FLAG = 0x7e   
@@ -107,14 +108,15 @@ def convert_coordinates(coordinate, is_latitude=True):
         return f"{ddmm}{direction}"  # Total length = 9 characters
 
 
-"""
-This section creates & formats the 'Object Report' for placement in the Information Field of the AX.25 message.
-"""  
+
 def create_obj_report():
+    """
+    This section creates & formats the 'Object Report' for placement in the Information Field of the AX.25 message.
+    """  
     global object_report
     
     info_field_data_id = ";"                # The ; is the APRS Data Type Identifier for an Object Report
-    object_name = "SABER_" + balloon_id     # Fixed 9-character Object name, which may consist of any printable ASCII characters
+    object_name = "BALON_" + balloon_id     # Fixed 9-character Object name, which may consist of any printable ASCII characters
     alive_killed = '*'                      # a * or _ separates the Object name from the rest of the report '*' = live Object. '_' = killed Object
     aprs_timestamp = f"{gps_day}{gps_time[:2]}{gps_time[3:5]}z"  # 7 bytes (DDHHMMz)
     aprs_lat = convert_coordinates(gps_lat, True)
@@ -135,11 +137,12 @@ def create_obj_report():
     return object_report        
 
 
-"""
-- This section creates the APRS message by combining the components into the format specified by the APRS protocol.
-- The APRS protocol can be found at: 
-"""
+
 def create_ax25_frame():    #<<<<< Check this is formatted properly with GPT <<<<<<<<
+    """
+    - This section creates the APRS message by combining the components into the format specified by the APRS protocol.
+    - The APRS protocol can be found at: 
+    """
     information_field = create_obj_report()  
 
     frame = bytearray()
@@ -198,12 +201,12 @@ async def create_aprs_message():
     return message
 
 
-"""
-This section takes the UI framte byte array and then transmits the message
-- The purpose for this formating is to integrate with APRS. If we are unable to get the message to upload to the APRS network,
-we can use a simpler message format
-"""  
+
 async def transmit_report():  
+    """
+    This section takes the UI framte byte array and then transmits the message
+    - The purpose for this formating is to integrate with APRS. 
+    """  
     global tx_counter, msg_sent, object_report, tx_time, tx_rate
     try:
         byte_message = await create_aprs_message()     # Message formatted as byte array
@@ -236,13 +239,14 @@ async def transmit_report():
         print(f"\n{RED}{'Transmit Error:':<25}{RESET}{e}\n")
   
         
-"""
-- This code sends the position update with 'update_interval'*60 minutes between messages. 
-- Needs: update to deconflict the balloon transmissions based on the time of day so two balloons 
-are not transmitting over each other and blocking the signal.
-- Only the A and C computers are equipped with transmitters
-"""        
+    
 async def periodic_update():  #~~~~~ TASK 9 ~~~~~
+    """
+    - This code sends the position update with 'update_interval'*60 minutes between messages. 
+    - Needs: update to deconflict the balloon transmissions based on the time of day so two balloons 
+    are not transmitting over each other and blocking the signal.
+    - Only the A and C computers are equipped with transmitters
+    """    
     while computer_type in ["A", "C"]:
         for _ in range(msg_iterations):  # Loop for a fixed number of iterations
             await transmit_report()  # Call the async function
